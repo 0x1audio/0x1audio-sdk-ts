@@ -65,3 +65,25 @@ test("job() and host() are gone and say what replaced them", () => {
   assert.throws(() => job(), /job\(\) is gone: use ox.run[\s\S]*fix:  import \{ ox \}[\s\S]*docs: https:\/\/docs.0x1audio.com/)
   assert.throws(() => host(), /host\(\) is gone[\s\S]*fix:/)
 })
+
+test("events reach their own run, and Stop says what was kept", async () => {
+  type EventListener = (ticket: string, name: string, body: unknown) => void
+  const events = new Set<EventListener>()
+  const { cancelled } = fakeHost(async (ticket) => {
+    events.forEach((listener) => listener("someone-else", "partial", 0))
+    events.forEach((listener) => listener(ticket, "partial", { done: 1 }))
+    while (!cancelled.has(ticket)) await new Promise((resolve) => setTimeout(resolve, 5))
+    return { ok: false, error: { code: "cancelled", message: "Stopped. Kept 1: song.flac.", kept: [{ id: "1", kind: "sound", title: "song", path: "/m/song.flac" }] } }
+  })
+  ;(window.ox1 as Bridge).onEvent = (callback) => {
+    events.add(callback)
+    return () => events.delete(callback)
+  }
+  const seen: unknown[] = []
+  const stop = new AbortController()
+  const running = ox.run("convert", {}, { onEvent: (name, body) => seen.push([name, body]), signal: stop.signal })
+  setTimeout(() => stop.abort(), 20)
+  await assert.rejects(running, (error: unknown) => error instanceof OxError && error.code === "cancelled" && error.kept[0]?.path === "/m/song.flac")
+  assert.deepEqual(seen, [["partial", { done: 1 }]])
+  assert.equal(events.size, 0)
+})

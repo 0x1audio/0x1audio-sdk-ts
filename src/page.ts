@@ -11,18 +11,23 @@ export interface ErrorBody {
   message: string
   hint?: string
   detail?: string
+  // On "cancelled": what the action finished before Stop. Already in the Library.
+  kept?: Exported[]
 }
 
 export class OxError extends Error {
   readonly code: ErrorCode
   readonly hint?: string
   readonly detail?: string
+  // After Stop: the sounds and files the action had already made. Empty when nothing was finished.
+  readonly kept: Exported[]
   constructor(body: ErrorBody) {
     super(body.message)
     this.name = "OxError"
     this.code = body.code
     this.hint = body.hint
     this.detail = body.detail
+    this.kept = body.kept ?? []
   }
 }
 
@@ -69,7 +74,10 @@ export interface Exported {
 export interface RunOptions {
   // fraction is 0..1, or null while the action doesn't know how far along it is.
   onProgress?: (fraction: number | null, label: string) => void
+  // Events the action sends with ox.emit(name, body) while it runs, like partial results.
+  onEvent?: (name: string, body: unknown) => void
   // Abort to press Stop: the action gets ox.Cancelled and the promise rejects with code "cancelled".
+  // The OxError's `kept` lists what was finished before Stop.
   signal?: AbortSignal
 }
 
@@ -101,6 +109,7 @@ export interface Bridge {
   run(ticket: string, action: string, input: Record<string, unknown>): Promise<HostResult<unknown>>
   cancel(ticket: string): Promise<boolean>
   onProgress(callback: (ticket: string, fraction: number | null, label: string) => void): () => void
+  onEvent?(callback: (ticket: string, name: string, body: unknown) => void): () => void
   open(href: string): Promise<void>
   pick(options?: PickOptions): Promise<string[]>
   pathFor(file: File): string
@@ -146,12 +155,18 @@ async function run<Result = unknown>(action: string, input: Record<string, unkno
   const stop = host.onProgress((from, fraction, label) => {
     if (from === ticket) options.onProgress?.(fraction, label)
   })
+  const stopEvents = options.onEvent && host.onEvent
+    ? host.onEvent((from, name, body) => {
+        if (from === ticket) options.onEvent?.(name, body)
+      })
+    : () => {}
   const abort = () => void host.cancel(ticket)
   options.signal?.addEventListener("abort", abort, { once: true })
   try {
     return unwrap(await host.run(ticket, action, input)) as Result
   } finally {
     stop()
+    stopEvents()
     options.signal?.removeEventListener("abort", abort)
   }
 }
