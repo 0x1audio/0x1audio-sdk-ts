@@ -55,10 +55,22 @@ test("errors keep their code and hint", async () => {
   await assert.rejects(ox.run("convert"), (error: unknown) => error instanceof OxError && error.code === "problem" && error.hint === "Try a WAV.")
 })
 
-test("outside 0x1audio the error says where to open the app", async () => {
+test("outside Mixel the error says where to open the app", async () => {
   ;(globalThis as { window?: unknown }).window = {}
   assert.equal(ox.available(), false)
-  await assert.rejects(ox.run("convert"), /Open this app in 0x1audio/)
+  await assert.rejects(ox.run("convert"), /: Open this app in Mixel\.$/)
+})
+
+test("ox.unavailable() gives apps the words, so they never name the product (GAB-107)", () => {
+  ;(globalThis as { window?: unknown }).window = {}
+  assert.equal(ox.unavailable()?.message, "Open this app in Mixel.")
+  assert.equal(ox.unavailable()?.code, "unavailable")
+  ;(globalThis as { window?: unknown }).window = { ox1: { protocol: 2 } }
+  assert.equal(ox.unavailable()?.message, "Update Mixel to open this app.")
+  assert.equal(ox.available(), false)
+  ;(globalThis as { window?: unknown }).window = { ox1: { protocol: 1 } }
+  assert.equal(ox.unavailable(), null)
+  assert.equal(ox.available(), true)
 })
 
 test("job() and host() are gone and say what replaced them", () => {

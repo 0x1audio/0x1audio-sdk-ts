@@ -1,5 +1,5 @@
 // The page side of an app: `import { ox } from "@0x1audio/sdk/page"`.
-// 0x1audio injects window.ox1 before the page runs; this module is the typed way in.
+// Mixel injects window.ox1 before the page runs; this module is the typed way in.
 // Every call either returns its value or throws an OxError with a code.
 
 import type { ActionSpec, ErrorBody as ContractErrorBody, ErrorCode } from "./contract.gen.js"
@@ -101,12 +101,17 @@ declare global {
   }
 }
 
-function bridge(): Bridge {
+// Why the page can't reach Mixel, or null when it can. The words name the product, so apps don't have to.
+function unavailable(): OxError | null {
   const current = typeof window === "undefined" ? undefined : window.ox1
-  if (!current || current.protocol !== 1) {
-    throw new OxError({ code: "unavailable", message: current ? "Update 0x1audio to open this app." : "Open this app in 0x1audio." })
-  }
-  return current
+  if (current && current.protocol === 1) return null
+  return new OxError({ code: "unavailable", message: current ? "Update Mixel to open this app." : "Open this app in Mixel." })
+}
+
+function bridge(): Bridge {
+  const missing = unavailable()
+  if (missing) throw missing
+  return window.ox1 as Bridge
 }
 
 function unwrap<T>(result: HostResult<T> | undefined): T {
@@ -155,7 +160,7 @@ async function run<Result = unknown>(action: string, input: Record<string, unkno
 }
 
 export const ox = {
-  // Run an @ox.action. 0x1audio checks the input, runs it in the background, and streams progress.
+  // Run an @ox.action. Mixel checks the input, runs it in the background, and streams progress.
   run,
   // The actions the app's Python declared, with their input schemas. <ActionForm> draws from this.
   actions: async (): Promise<ActionSpec[]> => unwrap(await bridge().actions()),
@@ -192,8 +197,11 @@ export const ox = {
     // Open another page of this app in a new window, like "settings.html".
     open: (href: string): Promise<void> => bridge().open(href),
   },
-  // True inside 0x1audio. Use it to show "Open this app in 0x1audio" in a plain browser.
-  available: (): boolean => typeof window !== "undefined" && window.ox1?.protocol === 1,
+  // True inside Mixel.
+  available: (): boolean => unavailable() === null,
+  // Why calls would fail here, as the OxError they'd throw ("Open this app in Mixel."), or null inside Mixel.
+  // Show its message instead of writing the product's name in the app: toast.error(ox.unavailable()?.message).
+  unavailable,
 }
 
 // Gone in 0.3. Kept as names so old pages fail with the fix instead of "is not a function".
