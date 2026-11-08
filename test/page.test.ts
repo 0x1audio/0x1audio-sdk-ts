@@ -87,3 +87,41 @@ test("events reach their own run, and Stop says what was kept", async () => {
   assert.deepEqual(seen, [["partial", { done: 1 }]])
   assert.equal(events.size, 0)
 })
+
+test("ox.data refusals are OxErrors with the code and the fix (GAB-79)", async () => {
+  const stored = new Map<string, Uint8Array>()
+  const bridge = {
+    protocol: 1,
+    dataResult: async (op: string, path: string, body?: Uint8Array | string) => {
+      if (path.startsWith("secret")) {
+        return { ok: false, error: { code: "permission_undeclared", message: "Loop Maker used data, but its app.json doesn't ask for it.", hint: 'add "data": "…" to app.json › permissions' } }
+      }
+      if (op === "write") stored.set(path, typeof body === "string" ? new TextEncoder().encode(body) : (body as Uint8Array))
+      if (op === "read") return { ok: true, body: stored.get(path) }
+      if (op === "list") return { ok: true, body: [...stored.keys()] }
+      return { ok: true, body: null }
+    },
+  } as unknown as Bridge
+  ;(globalThis as { window?: unknown }).window = { ox1: bridge }
+  await ox.data.write("loops/a.json", "{}")
+  assert.equal(await ox.data.readText("loops/a.json"), "{}")
+  assert.deepEqual(await ox.data.list(), ["loops/a.json"])
+  await assert.rejects(ox.data.write("secret", "x"), (error: unknown) => error instanceof OxError && error.code === "permission_undeclared" && /app\.json › permissions/.test(error.hint ?? ""))
+})
+
+test("ox.data on an older host still works and still throws an OxError", async () => {
+  const bridge = {
+    protocol: 1,
+    data: {
+      list: async () => ["a"],
+      read: async () => new Uint8Array([104, 105]),
+      write: async () => {
+        throw new Error("Loop Maker needs permission to keep its own files.")
+      },
+      remove: async () => undefined,
+    },
+  } as unknown as Bridge
+  ;(globalThis as { window?: unknown }).window = { ox1: bridge }
+  assert.equal(await ox.data.readText("a"), "hi")
+  await assert.rejects(ox.data.write("a", "x"), (error: unknown) => error instanceof OxError && error.code === "permission_denied" && /keep its own files/.test(error.message))
+})

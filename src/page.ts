@@ -91,6 +91,8 @@ export interface Bridge {
     write(path: string, body: Uint8Array | string): Promise<void>
     remove(path: string): Promise<void>
   }
+  // The data calls with their error code (Mixel 0.3+). Older hosts only have `data`.
+  dataResult?(op: "list" | "read" | "write" | "remove", path: string, body?: Uint8Array | string): Promise<HostResult<unknown>>
 }
 
 declare global {
@@ -110,6 +112,21 @@ function bridge(): Bridge {
 function unwrap<T>(result: HostResult<T> | undefined): T {
   if (result && result.ok) return result.body
   throw new OxError(result?.error ?? { code: "crashed", message: "The app ran into a problem." })
+}
+
+// ox.data through dataResult when the host has it, so a refusal is an OxError with its code
+// (permission_undeclared names the fix). An Error thrown across the bridge keeps only its message.
+async function data<T>(op: "list" | "read" | "write" | "remove", path: string, body?: Uint8Array | string): Promise<T> {
+  const host = bridge()
+  if (host.dataResult) return unwrap(await host.dataResult(op, path, body)) as T
+  try {
+    if (op === "list") return (await host.data.list(path)) as T
+    if (op === "read") return (await host.data.read(path)) as T
+    if (op === "write") return (await host.data.write(path, body ?? "")) as T
+    return (await host.data.remove(path)) as T
+  } catch (error) {
+    throw new OxError({ code: "permission_denied", message: error instanceof Error ? error.message : "Could not use this app's data." })
+  }
 }
 
 let tickets = 0
@@ -159,12 +176,17 @@ export const ox = {
     file: (id: string): Promise<string> => bridge().libraryFile(id),
     onChange: (callback: () => void): (() => void) => bridge().onLibrary(callback),
   },
+  // The app's own files (needs "data"). Errors are OxError: permission_undeclared when app.json doesn't ask for data.
   data: {
-    list: (path = ""): Promise<string[]> => bridge().data.list(path),
-    read: async (path: string): Promise<Uint8Array> => new Uint8Array(await bridge().data.read(path)),
-    readText: async (path: string): Promise<string> => new TextDecoder("utf-8", { fatal: true }).decode(await bridge().data.read(path)),
-    write: (path: string, body: Uint8Array | string): Promise<void> => bridge().data.write(path, body),
-    remove: (path: string): Promise<void> => bridge().data.remove(path),
+    list: (path = ""): Promise<string[]> => data<string[]>("list", path),
+    read: async (path: string): Promise<Uint8Array> => new Uint8Array(await data<Uint8Array>("read", path)),
+    readText: async (path: string): Promise<string> => new TextDecoder("utf-8", { fatal: true }).decode(await data<Uint8Array>("read", path)),
+    write: async (path: string, body: Uint8Array | string): Promise<void> => {
+      await data<null>("write", path, body)
+    },
+    remove: async (path: string): Promise<void> => {
+      await data<null>("remove", path)
+    },
   },
   app: {
     // Open another page of this app in a new window, like "settings.html".
