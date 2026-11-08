@@ -1,16 +1,14 @@
 // The page side of an app: `import { ox } from "@0x1audio/sdk/page"`.
 // 0x1audio injects window.ox1 before the page runs; this module is the typed way in.
 // Every call either returns its value or throws an OxError with a code.
-// The action and protocol shapes below mirror sdk-py/_protocol.py and
-// desktop/electron/apps/protocol.ts; GAB-37 generates all three from one contract.
 
-export type ErrorCode = "bad_input" | "problem" | "cancelled" | "crashed" | "timeout" | "permission_denied" | "permission_undeclared" | "unavailable"
+import type { ActionSpec, ErrorBody as ContractErrorBody, ErrorCode } from "./contract.gen.js"
 
-export interface ErrorBody {
-  code: ErrorCode
-  message: string
-  hint?: string
-  detail?: string
+// The shapes shared with sdk-py and the desktop are generated from sdk-py/contract.
+export type { ActionSpec, Control, ControlHint, ErrorCode, PropertySchema } from "./contract.gen.js"
+export { errorCodes, permissionCodes, protocolVersion } from "./contract.gen.js"
+
+export interface ErrorBody extends Omit<ContractErrorBody, "kept"> {
   // On "cancelled": what the action finished before Stop. Already in the Library.
   kept?: Exported[]
 }
@@ -29,38 +27,6 @@ export class OxError extends Error {
     this.detail = body.detail
     this.kept = body.kept ?? []
   }
-}
-
-export type Control = "files" | "folder" | "choice" | "text" | "number" | "slider" | "toggle"
-
-export interface ControlHint {
-  control: Control
-  accept?: "audio" | "midi" | "any"
-  multiple?: boolean
-  label?: string
-  placeholder?: string
-  step?: number
-}
-
-export interface PropertySchema {
-  type?: "string" | "number" | "integer" | "boolean" | "array"
-  title?: string
-  default?: unknown
-  enum?: string[]
-  minimum?: number
-  maximum?: number
-  minItems?: number
-  items?: { type: "string"; enum?: string[] }
-  anyOf?: PropertySchema[]
-  "x-ox"?: ControlHint
-}
-
-// One @ox.action, as the Python side declared it.
-export interface ActionSpec {
-  name: string
-  title: string
-  input: { type: "object"; properties: Record<string, PropertySchema>; required: string[]; additionalProperties: false }
-  timeout: number
 }
 
 // What an action returns when it returns ox.sound/midi/file exports: they are already in the Library.
