@@ -1,0 +1,66 @@
+# Publishes @0x1audio/sdk to npm with trusted publishing (GAB-40): no npm token is
+# stored anywhere. GitHub proves to npm which repo and workflow is asking, through a
+# short-lived OIDC token, and npm attaches a provenance statement to the package.
+#
+# By hand only (Actions › Publish the SDK › Run workflow). Type the version from
+# package.json to confirm; it must match, and it must not be on npm already.
+#
+# One-time setup, done by the founder (RELEASE.md, "Publishing the SDKs"):
+#   1. npmjs.com › @0x1audio/sdk › Settings › Trusted publishing › GitHub Actions:
+#      organization 0x1audio, repository 0x1audio-sdk-ts, workflow sdk-publish.yml,
+#      environment npm. (The package must exist first: the very first version is
+#      published by hand with `npm publish --access public`.)
+#   2. Here: Settings › Environments › New environment "npm", with yourself as a
+#      required reviewer, so every upload waits for a person.
+#
+# Actions are pinned by commit SHA (the tag is in the comment).
+name: Publish the SDK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version in package.json, typed again to confirm"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@0x1audio/sdk/v/${{ inputs.version }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - name: npm with trusted publishing
+        run: npm install -g npm@11 && npm --version
+
+      - name: The version matches and is new
+        env:
+          WANT: ${{ inputs.version }}
+        run: |
+          have=$(node -p "require('./package.json').version")
+          if [ "$have" != "$WANT" ]; then echo "::error::package.json says $have, not $WANT."; exit 1; fi
+          if npm view "@0x1audio/sdk@$have" version > /dev/null 2>&1; then echo "::error::@0x1audio/sdk $have is already on npm."; exit 1; fi
+
+      - name: Test
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+
+      - name: Publish
+        run: npm publish --access public --provenance

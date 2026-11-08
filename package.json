@@ -2,6 +2,10 @@
   "name": "@0x1audio/sdk",
   "version": "0.3.0",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0x1audio/0x1audio-sdk-ts.git"
+  },
   "type": "module",
   "exports": {
     ".": {
