@@ -45,6 +45,7 @@ export interface PropertySchema {
   minimum?: number
   maximum?: number
   minItems?: number
+  items?: { type: "string"; enum?: string[] }
   anyOf?: PropertySchema[]
   "x-ox"?: ControlHint
 }
