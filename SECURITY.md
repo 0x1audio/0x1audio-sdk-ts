@@ -16,7 +16,7 @@ Tell us what you found, the steps to reproduce it, what an attacker could do wit
 - **The page side** (`@0x1audio/sdk/page`): anything that lets a page call the desktop in a way its app didn't declare, or confuses one app's page with another's.
 - **The API client:** how it sends tokens and where it sends them.
 
-The desktop sandbox, file access, registry review, and the API and auth live in the Mixel cloud, and its [SECURITY.md](https://github.com/0x1audio/cloud/blob/main/SECURITY.md) covers them. If you're not sure where something belongs, report it here and we'll pass it on.
+The desktop sandbox, file access, registry review, and the API and auth live in the Mixel cloud, and its [SECURITY.md](https://github.com/0x1audio/mixel/blob/main/SECURITY.md) covers them. If you're not sure where something belongs, report it here and we'll pass it on.
 
 Not in scope: denial of service by volume, spam, social engineering, scanner output without a way to cause harm, and bugs in dependencies (report those upstream, and tell us if we're affected).
 
