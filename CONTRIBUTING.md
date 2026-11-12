@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping with @0x1audio/sdk, the page SDK for Mixel apps. A good bug report is as welcome as a pull request.
+Thank you for helping with @0x1audio/sdk, Mixel's TypeScript SDK. A good bug report is as welcome as a pull request.
 
 ## Issues
 
@@ -10,7 +10,7 @@ Thank you for helping with @0x1audio/sdk, the page SDK for Mixel apps. A good bu
 
 ## Set up
 
-You need Git and Node with npm.
+You need Git and Node 22.18 or later with npm (the examples are `.ts` files that Node runs directly).
 
 ```bash
 git clone <this repository> 0x1audio-sdk-ts
@@ -18,7 +18,11 @@ cd 0x1audio-sdk-ts
 npm install
 ```
 
-Two parts are generated, so don't edit them by hand: `src/contract.gen.ts` comes from the contract in the Python SDK (`0x1audio-sdk-py/contract/`), and `src/client/` comes from `openapi.json` (`npm run generate`).
+Three parts are generated, so don't edit them by hand:
+
+- `src/contract.gen.ts` comes from the contract in the Python SDK (`0x1audio-sdk-py/contract/`).
+- `openapi.json` is the developer part of the cloud's spec, cut by `npm run openapi`. The Python SDK cuts the same file, byte for byte.
+- `src/client/` comes from `openapi.json` (`npm run generate`).
 
 ## Run the checks
 
@@ -26,8 +30,11 @@ Run these before you open a pull request:
 
 ```bash
 npm run typecheck
-npm test
+npm test          # builds, typechecks examples/, runs test/ (the examples run against a stand-in Mixel)
+npm run drift     # openapi.json and src/client against the cloud's spec
 ```
+
+With Mixel open, `npm run smoke` runs the examples against the real thing. A change to what `@0x1audio/sdk` exports or does gets a line in [CHANGELOG.md](CHANGELOG.md), under the next version.
 
 ## Pull requests
 
