@@ -2,7 +2,7 @@
 
 import { client } from './client.gen.js';
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client/index.js';
-import type { GetApiV1AuthSessionData, GetApiV1AuthSessionErrors, GetApiV1AuthSessionResponses, GetApiV1HealthData, GetApiV1HealthErrors, GetApiV1HealthResponses, PostApiV1AuthDesktopExchangeData, PostApiV1AuthDesktopExchangeErrors, PostApiV1AuthDesktopExchangeResponses, PostApiV1AuthDesktopHandoffData, PostApiV1AuthDesktopHandoffErrors, PostApiV1AuthDesktopHandoffResponses, PostApiV1AuthLoginData, PostApiV1AuthLoginErrors, PostApiV1AuthLoginResponses, PostApiV1AuthLogoutData, PostApiV1AuthLogoutResponses, PostApiV1AuthRegisterData, PostApiV1AuthRegisterErrors, PostApiV1AuthRegisterPasswordData, PostApiV1AuthRegisterPasswordErrors, PostApiV1AuthRegisterPasswordResponses, PostApiV1AuthRegisterResendData, PostApiV1AuthRegisterResendErrors, PostApiV1AuthRegisterResendResponses, PostApiV1AuthRegisterResponses, PostApiV1AuthRegisterVerifyData, PostApiV1AuthRegisterVerifyErrors, PostApiV1AuthRegisterVerifyResponses } from './types.gen.js';
+import type { GetApiV1AccountCliTokensData, GetApiV1AccountCliTokensErrors, GetApiV1AccountCliTokensResponses, GetApiV1HealthData, GetApiV1HealthErrors, GetApiV1HealthResponses, GetApiV1MeData, GetApiV1MeErrors, GetApiV1MeResponses, GetApiV1RegistryCatalogData, GetApiV1RegistryCatalogErrors, GetApiV1RegistryCatalogResponses, GetApiV1RegistrySubmissionsByIdData, GetApiV1RegistrySubmissionsByIdErrors, GetApiV1RegistrySubmissionsByIdResponses, GetApiV1RegistrySubmissionsData, GetApiV1RegistrySubmissionsErrors, GetApiV1RegistrySubmissionsResponses, PostApiV1AccountCliTokensRevokeData, PostApiV1AccountCliTokensRevokeErrors, PostApiV1AccountCliTokensRevokeResponses, PostApiV1CliLoginData, PostApiV1CliLoginErrors, PostApiV1CliLoginPollData, PostApiV1CliLoginPollErrors, PostApiV1CliLoginPollResponses, PostApiV1CliLoginResponses, PostApiV1RegistrySubmissionsData, PostApiV1RegistrySubmissionsErrors, PostApiV1RegistrySubmissionsResponses } from './types.gen.js';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -50,23 +50,27 @@ export class V1 extends HeyApiClient {
     /**
      * Liveness of the API and its stores
      */
-    public health<ThrowOnError extends boolean = false>(options?: Options<GetApiV1HealthData, ThrowOnError>): RequestResult<GetApiV1HealthResponses, GetApiV1HealthErrors, ThrowOnError> {
+    public health<ThrowOnError extends boolean = true>(options?: Options<GetApiV1HealthData, ThrowOnError>): RequestResult<GetApiV1HealthResponses, GetApiV1HealthErrors, ThrowOnError> {
         return (options?.client ?? this.client).get<GetApiV1HealthResponses, GetApiV1HealthErrors, ThrowOnError>({ url: '/api/v1/health', ...options });
     }
     
     /**
-     * The account behind the session cookie
+     * Where the account stands, approved or waitlisted, and against the Terms (a session or a CLI token; open while waitlisted)
+     *
+     * A self-hosted cloud without a waitlist may not have this route; a client that gets 404 treats the account as approved.
      */
-    public session<ThrowOnError extends boolean = false>(options?: Options<GetApiV1AuthSessionData, ThrowOnError>): RequestResult<GetApiV1AuthSessionResponses, GetApiV1AuthSessionErrors, ThrowOnError> {
-        return (options?.client ?? this.client).get<GetApiV1AuthSessionResponses, GetApiV1AuthSessionErrors, ThrowOnError>({ url: '/api/v1/auth/session', ...options });
+    public me<ThrowOnError extends boolean = true>(options?: Options<GetApiV1MeData, ThrowOnError>): RequestResult<GetApiV1MeResponses, GetApiV1MeErrors, ThrowOnError> {
+        return (options?.client ?? this.client).get<GetApiV1MeResponses, GetApiV1MeErrors, ThrowOnError>({ url: '/api/v1/me', ...options });
     }
     
     /**
-     * Begin account creation and send a code
+     * Start a mixel sign-in (device flow)
+     *
+     * The CLI shows user_code and opens verification_url?code=…; the person confirms it on the website while signed in. RFC 8628 style.
      */
-    public register<ThrowOnError extends boolean = false>(options: Options<PostApiV1AuthRegisterData, ThrowOnError>): RequestResult<PostApiV1AuthRegisterResponses, PostApiV1AuthRegisterErrors, ThrowOnError> {
-        return (options.client ?? this.client).post<PostApiV1AuthRegisterResponses, PostApiV1AuthRegisterErrors, ThrowOnError>({
-            url: '/api/v1/auth/register',
+    public cliLogin<ThrowOnError extends boolean = true>(options: Options<PostApiV1CliLoginData, ThrowOnError>): RequestResult<PostApiV1CliLoginResponses, PostApiV1CliLoginErrors, ThrowOnError> {
+        return (options.client ?? this.client).post<PostApiV1CliLoginResponses, PostApiV1CliLoginErrors, ThrowOnError>({
+            url: '/api/v1/cli/login',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -76,11 +80,13 @@ export class V1 extends HeyApiClient {
     }
     
     /**
-     * Check the code before a password is chosen
+     * Ask whether the pairing code was confirmed
+     *
+     * 400 with error.code authorization_pending (keep polling every interval seconds), slow_down (add 2 s), expired_token, access_denied or terms_required (stop; terms_required: the account hasn't agreed to the Terms, and the message says to agree on the web first). 200 gives the CLI token once; it is sent as Authorization Bearer.
      */
-    public verifyRegistration<ThrowOnError extends boolean = false>(options: Options<PostApiV1AuthRegisterVerifyData, ThrowOnError>): RequestResult<PostApiV1AuthRegisterVerifyResponses, PostApiV1AuthRegisterVerifyErrors, ThrowOnError> {
-        return (options.client ?? this.client).post<PostApiV1AuthRegisterVerifyResponses, PostApiV1AuthRegisterVerifyErrors, ThrowOnError>({
-            url: '/api/v1/auth/register/verify',
+    public cliLoginPoll<ThrowOnError extends boolean = true>(options: Options<PostApiV1CliLoginPollData, ThrowOnError>): RequestResult<PostApiV1CliLoginPollResponses, PostApiV1CliLoginPollErrors, ThrowOnError> {
+        return (options.client ?? this.client).post<PostApiV1CliLoginPollResponses, PostApiV1CliLoginPollErrors, ThrowOnError>({
+            url: '/api/v1/cli/login/poll',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -90,11 +96,18 @@ export class V1 extends HeyApiClient {
     }
     
     /**
-     * Choose the password and open a session
+     * The mixel command lines signed in to this account
      */
-    public choosePassword<ThrowOnError extends boolean = false>(options: Options<PostApiV1AuthRegisterPasswordData, ThrowOnError>): RequestResult<PostApiV1AuthRegisterPasswordResponses, PostApiV1AuthRegisterPasswordErrors, ThrowOnError> {
-        return (options.client ?? this.client).post<PostApiV1AuthRegisterPasswordResponses, PostApiV1AuthRegisterPasswordErrors, ThrowOnError>({
-            url: '/api/v1/auth/register/password',
+    public cliTokens<ThrowOnError extends boolean = true>(options?: Options<GetApiV1AccountCliTokensData, ThrowOnError>): RequestResult<GetApiV1AccountCliTokensResponses, GetApiV1AccountCliTokensErrors, ThrowOnError> {
+        return (options?.client ?? this.client).get<GetApiV1AccountCliTokensResponses, GetApiV1AccountCliTokensErrors, ThrowOnError>({ url: '/api/v1/account/cli-tokens', ...options });
+    }
+    
+    /**
+     * Sign one command line out
+     */
+    public revokeCliToken<ThrowOnError extends boolean = true>(options: Options<PostApiV1AccountCliTokensRevokeData, ThrowOnError>): RequestResult<PostApiV1AccountCliTokensRevokeResponses, PostApiV1AccountCliTokensRevokeErrors, ThrowOnError> {
+        return (options.client ?? this.client).post<PostApiV1AccountCliTokensRevokeResponses, PostApiV1AccountCliTokensRevokeErrors, ThrowOnError>({
+            url: '/api/v1/account/cli-tokens/revoke',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -104,11 +117,20 @@ export class V1 extends HeyApiClient {
     }
     
     /**
-     * Send the code again
+     * This account's submissions of one app, newest first
      */
-    public resendRegistration<ThrowOnError extends boolean = false>(options: Options<PostApiV1AuthRegisterResendData, ThrowOnError>): RequestResult<PostApiV1AuthRegisterResendResponses, PostApiV1AuthRegisterResendErrors, ThrowOnError> {
-        return (options.client ?? this.client).post<PostApiV1AuthRegisterResendResponses, PostApiV1AuthRegisterResendErrors, ThrowOnError>({
-            url: '/api/v1/auth/register/resend',
+    public submissions<ThrowOnError extends boolean = true>(options: Options<GetApiV1RegistrySubmissionsData, ThrowOnError>): RequestResult<GetApiV1RegistrySubmissionsResponses, GetApiV1RegistrySubmissionsErrors, ThrowOnError> {
+        return (options.client ?? this.client).get<GetApiV1RegistrySubmissionsResponses, GetApiV1RegistrySubmissionsErrors, ThrowOnError>({ url: '/api/v1/registry/submissions', ...options });
+    }
+    
+    /**
+     * Submit an app for review by commit
+     *
+     * For mixel publish. Takes a CLI token or a session. The repository must be one of the author's public GitHub repositories and the commit must be on it. app.json is read at that commit and checked with the same rules as mixel check (every problem in errors[]); a summary is required; the name can't change after publishing; an app that lists Python packages must commit uv.lock. Ten submissions an hour per account.
+     */
+    public createSubmission<ThrowOnError extends boolean = true>(options: Options<PostApiV1RegistrySubmissionsData, ThrowOnError>): RequestResult<PostApiV1RegistrySubmissionsResponses, PostApiV1RegistrySubmissionsErrors, ThrowOnError> {
+        return (options.client ?? this.client).post<PostApiV1RegistrySubmissionsResponses, PostApiV1RegistrySubmissionsErrors, ThrowOnError>({
+            url: '/api/v1/registry/submissions',
             ...options,
             headers: {
                 'Content-Type': 'application/json',
@@ -118,52 +140,17 @@ export class V1 extends HeyApiClient {
     }
     
     /**
-     * Open a session with email and password
+     * One of this account's submissions
      */
-    public login<ThrowOnError extends boolean = false>(options: Options<PostApiV1AuthLoginData, ThrowOnError>): RequestResult<PostApiV1AuthLoginResponses, PostApiV1AuthLoginErrors, ThrowOnError> {
-        return (options.client ?? this.client).post<PostApiV1AuthLoginResponses, PostApiV1AuthLoginErrors, ThrowOnError>({
-            url: '/api/v1/auth/login',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
+    public submission<ThrowOnError extends boolean = true>(options: Options<GetApiV1RegistrySubmissionsByIdData, ThrowOnError>): RequestResult<GetApiV1RegistrySubmissionsByIdResponses, GetApiV1RegistrySubmissionsByIdErrors, ThrowOnError> {
+        return (options.client ?? this.client).get<GetApiV1RegistrySubmissionsByIdResponses, GetApiV1RegistrySubmissionsByIdErrors, ThrowOnError>({ url: '/api/v1/registry/submissions/{id}', ...options });
     }
     
     /**
-     * Turn the browser session into a one-time code for the desktop app
+     * Apps accepted into the registry
      */
-    public desktopHandoff<ThrowOnError extends boolean = false>(options: Options<PostApiV1AuthDesktopHandoffData, ThrowOnError>): RequestResult<PostApiV1AuthDesktopHandoffResponses, PostApiV1AuthDesktopHandoffErrors, ThrowOnError> {
-        return (options.client ?? this.client).post<PostApiV1AuthDesktopHandoffResponses, PostApiV1AuthDesktopHandoffErrors, ThrowOnError>({
-            url: '/api/v1/auth/desktop/handoff',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    /**
-     * Redeem a desktop code for a session token
-     */
-    public desktopExchange<ThrowOnError extends boolean = false>(options: Options<PostApiV1AuthDesktopExchangeData, ThrowOnError>): RequestResult<PostApiV1AuthDesktopExchangeResponses, PostApiV1AuthDesktopExchangeErrors, ThrowOnError> {
-        return (options.client ?? this.client).post<PostApiV1AuthDesktopExchangeResponses, PostApiV1AuthDesktopExchangeErrors, ThrowOnError>({
-            url: '/api/v1/auth/desktop/exchange',
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
-    }
-    
-    /**
-     * Forget the session
-     */
-    public logout<ThrowOnError extends boolean = false>(options?: Options<PostApiV1AuthLogoutData, ThrowOnError>): RequestResult<PostApiV1AuthLogoutResponses, unknown, ThrowOnError> {
-        return (options?.client ?? this.client).post<PostApiV1AuthLogoutResponses, unknown, ThrowOnError>({ url: '/api/v1/auth/logout', ...options });
+    public appCatalog<ThrowOnError extends boolean = true>(options?: Options<GetApiV1RegistryCatalogData, ThrowOnError>): RequestResult<GetApiV1RegistryCatalogResponses, GetApiV1RegistryCatalogErrors, ThrowOnError> {
+        return (options?.client ?? this.client).get<GetApiV1RegistryCatalogResponses, GetApiV1RegistryCatalogErrors, ThrowOnError>({ url: '/api/v1/registry/catalog', ...options });
     }
 }
 

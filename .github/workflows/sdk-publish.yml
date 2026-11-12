@@ -61,6 +61,7 @@ jobs:
           npm ci
           npm run typecheck
           npm test
+          npm run drift
 
       - name: Publish
         run: npm publish --access public --provenance

@@ -1,12 +1,16 @@
 {
   "name": "@0x1audio/sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
+  "description": "Mixel's TypeScript SDK: an app's page, the Mixel on this computer, and the Mixel cloud.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0x1audio/0x1audio-sdk-ts.git"
   },
   "type": "module",
+  "engines": {
+    "node": ">=20.3"
+  },
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
@@ -15,20 +19,30 @@
     "./page": {
       "types": "./dist/src/page.d.ts",
       "import": "./dist/src/page.js"
+    },
+    "./local": {
+      "types": "./dist/src/local.d.ts",
+      "import": "./dist/src/local.js"
     }
   },
   "files": [
-    "dist",
-    "openapi.json"
+    "dist/src",
+    "openapi.json",
+    "CHANGELOG.md"
   ],
   "scripts": {
-    "generate": "openapi-ts",
+    "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsc -p tsconfig.json && node --test dist/test/*.test.js"
+    "test": "tsc -p tsconfig.json && tsc -p examples && node --test dist/test/*.test.js",
+    "openapi": "node scripts/openapi.mjs",
+    "generate": "openapi-ts",
+    "drift": "node scripts/openapi.mjs --check",
+    "smoke": "tsc -p tsconfig.json && node examples/smoke.mjs"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.99.0",
     "@types/node": "^22.18.0",
+    "js-yaml": "4.2.0",
     "typescript": "^5.9.3"
   }
 }
