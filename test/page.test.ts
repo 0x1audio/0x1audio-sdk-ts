@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 
-import { OxError, host, job, ox, type Bridge } from "../src/page.js"
+import { OxError, host, job, ox, permissionCodes, permissionText, type Bridge, type PermissionCode } from "../src/page.js"
 
 type Listener = (ticket: string, fraction: number | null, label: string) => void
 
@@ -136,4 +136,25 @@ test("ox.data on an older host still works and still throws an OxError", async (
   ;(globalThis as { window?: unknown }).window = { ox1: bridge }
   assert.equal(await ox.data.readText("a"), "hi")
   await assert.rejects(ox.data.write("a", "x"), (error: unknown) => error instanceof OxError && error.code === "permission_denied" && /keep its own files/.test(error.message))
+})
+
+test("the Library permission split: library adds, library-read lists and opens", async () => {
+  assert.ok(permissionCodes.includes("library") && permissionCodes.includes("library-read"))
+  assert.equal(permissionText["library-read"], "Read your Library")
+  const code: PermissionCode = "library-read"
+  assert.equal(code, "library-read")
+  const bridge = {
+    protocol: 1,
+    libraryList: async () => {
+      throw new Error("Error invoking remote method 'ox1:library-list': Error: Loop Maker can add to your Library, but it didn't ask to see it.")
+    },
+    libraryImport: async () => [{ imported: "already" }],
+    libraryFile: async () => {
+      throw new Error("This app can't open sounds from your Library.")
+    },
+  } as unknown as Bridge
+  ;(globalThis as { window?: unknown }).window = { ox1: bridge }
+  await assert.rejects(ox.library.list(), (error: unknown) => error instanceof OxError && error.code === "permission_undeclared" && error.message === "Loop Maker can add to your Library, but it didn't ask to see it." && /"library-read"/.test(error.hint ?? ""))
+  await assert.rejects(ox.library.file("s1"), (error: unknown) => error instanceof OxError && error.code === "permission_denied" && error.hint === undefined)
+  assert.deepEqual(await ox.library.add(["/m/a.wav"]), [{ imported: "already" }])
 })

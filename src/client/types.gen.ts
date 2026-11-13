@@ -11,6 +11,7 @@ export type Health = {
 export type Me = {
     status: 'waitlisted' | 'approved';
     terms: TermsStanding;
+    notices: Notices;
     /**
      * The account against the launch week's founding price
      */
@@ -41,15 +42,25 @@ export type Me = {
 };
 
 /**
- * The account against the Terms of Service. Show the step while required is true.
+ * The emails about Mixel itself this account can turn off (W10). Purchase, withdrawal and account emails always go
+ */
+export type Notices = {
+    /**
+     * The "Plus is on sale" email; on unless turned off
+     */
+    plusOnSale: boolean;
+};
+
+/**
+ * The account against the Terms of Service. Show the step while required is true. Two versions are kept apart: current, the one in force (the step offers it, each checkout records it), and minimum, the oldest one an account can have agreed to and still use the cloud.
  */
 export type TermsStanding = {
     /**
-     * The version in force ("1" for the beta, "2" from paid launch); null when this cloud has no Terms
+     * The version in force ("1" for the beta, "2" from paid launch): the step asks for it, and a checkout records it as the version the buyer agreed to on the Choose sheet. Null when this cloud has no Terms
      */
     current: string | null;
     /**
-     * The latest version the account agreed to; null if it never agreed
+     * The latest version the account agreed to in the step; null if it never agreed there. An agreement given with a purchase is kept with the purchase (the export's billing), not here
      */
     accepted: string | null;
     /**
@@ -57,9 +68,21 @@ export type TermsStanding = {
      */
     acceptedAt: string | null;
     /**
-     * True until the account agrees to the version in force. The desktop sign-in answers 409 terms_required meanwhile
+     * True until the account has agreed to a version that's enough to use the cloud (minimum or later, in the step or with a purchase), having been through the step once. The desktop sign-in and mixel login answer terms_required meanwhile
      */
     required: boolean;
+    /**
+     * The oldest version that lets an account use the cloud now: TERMS_REQUIRED_VERSION, else current, and current from requiredFrom. Null when this cloud has no Terms
+     */
+    minimum: string | null;
+    /**
+     * When current becomes the minimum (TERMS_REQUIRED_FROM): a material change takes effect then, 30 days or more after its email (Terms §14). Null when no such change is set
+     */
+    requiredFrom: string | null;
+    /**
+     * A material change is on its way (before requiredFrom) and this account hasn't agreed to current yet: offer "Review the new Terms" with Not now. It becomes required at requiredFrom
+     */
+    review: boolean;
 };
 
 /**

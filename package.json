@@ -3,10 +3,27 @@
   "version": "0.3.1",
   "description": "Mixel's TypeScript SDK: an app's page, the Mixel on this computer, and the Mixel cloud.",
   "license": "Apache-2.0",
+  "author": "0x1audio (https://0x1audio.com)",
+  "homepage": "https://docs.0x1audio.com",
+  "bugs": {
+    "url": "https://github.com/0x1audio/0x1audio-sdk-ts/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0x1audio/0x1audio-sdk-ts.git"
   },
+  "keywords": [
+    "mixel",
+    "0x1audio",
+    "audio",
+    "music",
+    "samples",
+    "sdk"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
   "type": "module",
   "engines": {
     "node": ">=20.3"
@@ -28,7 +45,8 @@
   "files": [
     "dist/src",
     "openapi.json",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -37,7 +55,9 @@
     "openapi": "node scripts/openapi.mjs",
     "generate": "openapi-ts",
     "drift": "node scripts/openapi.mjs --check",
-    "smoke": "tsc -p tsconfig.json && node examples/smoke.mjs"
+    "smoke": "tsc -p tsconfig.json && node examples/smoke.mjs",
+    "prepare": "npm run build",
+    "pack:check": "node scripts/pack-check.mjs"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.99.0",

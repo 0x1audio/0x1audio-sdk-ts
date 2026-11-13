@@ -25,8 +25,17 @@ Every release of `@0x1audio/sdk`, newest first. Versions follow [semantic versio
 - `examples/` with five runnable examples, and `npm run smoke` to run them against your Mixel.
 - `npm run openapi` cuts `openapi.json` from the cloud's spec. `npm run drift` fails when `openapi.json` or `src/client` is behind.
 
+- **The Library permission split (Mixel 0.1.23), on the page.** `PermissionCode` and `permissionCodes` have `"library-read"` next to `"library"`, and the page exports `permissionText`, the line Mixel shows for each.
+  - `"library"` adds to the Library: `ox.library.add`.
+  - `"library-read"` lists it and opens a sound the person picks: `ox.library.list` and `ox.library.file`.
+  - A refusal from `ox.library` is an `OxError`: `permission_undeclared` when `app.json` doesn't ask (its `hint` names the line to add), `permission_denied` when the person said no.
+- The cloud types follow today's API: `Me` has `notices` (the emails an account can turn off), and `TermsStanding` has `minimum`, `requiredFrom` and `review`.
+- Installs from a release file or from git before npm has the package: `npm install` builds a git checkout (`prepare`), and every release attaches the packed `.tgz`.
+
 ### Changed
 
+- **A page that lists or opens Library sounds needs `"library-read"` in `app.json`.** With `"library"` alone, Mixel 0.1.23 refuses `ox.library.list`, and `ox.library.file` for a sound the app didn't make or add.
+- `ox.library.add` returns `LibraryAdded[]`: each item, or only `{ imported: "already" }` when the Library had the same audio from elsewhere.
 - **The cloud client now matches the Mixel cloud as it is.** The methods are `health`, `me`, `cliLogin`, `cliLoginPoll`, `cliTokens`, `revokeCliToken`, `appCatalog`, `createSubmission`, `submissions` and `submission`.
 - Calls return `{ data }` and throw a `MixelError` on failure, instead of returning `{ error }`.
 - The package ships `dist/src` only, not the compiled tests.

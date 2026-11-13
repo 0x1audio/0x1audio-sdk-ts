@@ -1,0 +1,41 @@
+# A tag like v0.3.1 makes a GitHub release with the packed package attached, so
+#   npm install https://github.com/0x1audio/0x1audio-sdk-ts/releases/download/v0.3.1/0x1audio-sdk-0.3.1.tgz
+# works before (and after) the package is on npm. It is the same file `npm publish` would send.
+# No registry is touched here: sdk-publish.yml publishes to npm.
+#
+# Actions are pinned by commit SHA (the tag is in the comment).
+name: Release files
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: The tag is the version in package.json
+        run: |
+          have="v$(node -p "require('./package.json').version")"
+          if [ "$have" != "$GITHUB_REF_NAME" ]; then echo "::error::package.json says $have, the tag is $GITHUB_REF_NAME."; exit 1; fi
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run pack:check -- --keep out
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd out && sha256sum *.tgz > SHA256SUMS)
+          gh release create "$GITHUB_REF_NAME" out/* --title "@0x1audio/sdk ${GITHUB_REF_NAME#v}" --notes "See [CHANGELOG.md](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_REF_NAME/CHANGELOG.md)." --verify-tag

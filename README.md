@@ -18,7 +18,13 @@ You need [Mixel](https://0x1audio.com) and Node 20.3 or later.
 npm install @0x1audio/sdk
 ```
 
-The first release isn't on npm yet. Until it is, build a checkout and install it from there: `npm ci && npm run build` in this repository, then `npm install path/to/0x1audio-sdk-ts`.
+Until the first release is on npm, install the same package from its GitHub release:
+
+```bash
+npm install https://github.com/0x1audio/0x1audio-sdk-ts/releases/download/v0.3.1/0x1audio-sdk-0.3.1.tgz
+```
+
+The imports are the same either way. `npm install github:0x1audio/0x1audio-sdk-ts#v0.3.1` also works; it builds the package on your computer.
 
 **2. Let scripts search your Library.** In Mixel, open **Settings › Your assistant** and turn on **Let an assistant search your Library**.
 
@@ -78,7 +84,40 @@ const files = await ox.files.pick({ accept: "audio", multiple: true })
 const made = await ox.run("convert", { files, format: "flac" }, { onProgress: (fraction, label) => show(fraction, label) })
 ```
 
-Mixel injects the bridge before the page runs; outside Mixel, `ox.unavailable()` says why. Apps are written in Python with the [`ox1audio`](https://github.com/0x1audio/0x1audio-sdk-py) SDK, and `mixel new --page` sets up a page that uses this package. The guide is at [developers.0x1audio.com/page](https://developers.0x1audio.com/page).
+Mixel injects the bridge before the page runs; outside Mixel, `ox.unavailable()` says why. A failed call throws an `OxError` with a `code` and, when there's a fix, a `hint`.
+
+**Permissions.** A page can only use what the app's `app.json` asks for, each with a reason the person reads. `PermissionCode` is the list:
+
+| Code | Mixel shows | What it opens on the page |
+| --- | --- | --- |
+| `files` | Read and write files you pick | `ox.files`, and reading a file `ox.library.file` returned |
+| `library` | Add to your Library | `ox.library.add`, and what an action returns. It never lists or opens the person's other sounds |
+| `library-read` | Read your Library | `ox.library.list` (names, length, tempo and key, no paths) and `ox.library.file` for a sound the person picks |
+| `data` | Keep its own files | `ox.data` |
+| `gpu` | Use the graphics chip | nothing on the page; the app's Python may use it |
+| `network` | Use the network | the hosts `app.json` lists |
+
+`library` and `library-read` are separate from Mixel 0.1.23. An app that only saves its results asks for `library`. An app that lets the person choose from their sounds asks for `library-read` as well:
+
+```json
+"permissions": {
+  "library": "Save the loops you make.",
+  "library-read": "Let you choose a sound you already have."
+}
+```
+
+```ts
+import { ox, OxError } from "@0x1audio/sdk/page"
+
+try {
+  const sounds = await ox.library.list({ kind: "sound" })
+} catch (error) {
+  // permission_undeclared: app.json doesn't ask for "library-read" (error.hint names the line).
+  // permission_denied: the person said no.
+  if (error instanceof OxError) show(error.message)
+}
+```
+ Apps are written in Python with the [`ox1audio`](https://github.com/0x1audio/0x1audio-sdk-py) SDK, and `mixel new --page` sets up a page that uses this package. The guide is at [docs.0x1audio.com/page](https://docs.0x1audio.com/page).
 
 ## The Mixel cloud
 

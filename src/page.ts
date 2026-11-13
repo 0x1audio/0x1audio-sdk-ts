@@ -5,8 +5,8 @@
 import type { ActionSpec, ErrorBody as ContractErrorBody, ErrorCode } from "./contract.gen.js"
 
 // The shapes shared with sdk-py and the desktop are generated from sdk-py/contract.
-export type { ActionSpec, Control, ControlHint, ErrorCode, PropertySchema } from "./contract.gen.js"
-export { errorCodes, permissionCodes, protocolVersion } from "./contract.gen.js"
+export type { ActionSpec, Control, ControlHint, ErrorCode, PermissionCode, PropertySchema } from "./contract.gen.js"
+export { errorCodes, permissionCodes, permissionText, protocolVersion } from "./contract.gen.js"
 
 export interface ErrorBody extends Omit<ContractErrorBody, "kept"> {
   // On "cancelled": what the action finished before Stop. Already in the Library.
@@ -66,6 +66,9 @@ export interface LibraryItem {
   url: string
 }
 
+// What ox.library.add returns for each file: the item, or only that the Library already had it.
+export type LibraryAdded = (LibraryItem & { imported?: "added" | "already" }) | { imported: "already" }
+
 type HostResult<T> = { ok: true; body: T } | { ok: false; error: ErrorBody }
 
 // window.ox1, as the desktop's preload exposes it. Pages use `ox` below, not this.
@@ -82,7 +85,7 @@ export interface Bridge {
   reveal(path: string): Promise<boolean>
   readFile(path: string): Promise<Uint8Array>
   libraryList(kind?: string): Promise<LibraryItem[]>
-  libraryImport(paths: string[]): Promise<LibraryItem[]>
+  libraryImport(paths: string[]): Promise<LibraryAdded[]>
   libraryFile(id: string): Promise<string>
   onLibrary(callback: () => void): () => void
   data: {
@@ -134,6 +137,25 @@ async function data<T>(op: "list" | "read" | "write" | "remove", path: string, b
   }
 }
 
+// ox.library refusals as OxErrors. The host throws a plain Error across the bridge, which keeps
+// only its message (with Electron's "Error invoking remote method …" in front), so the code
+// comes from which permission the call needs: "library" adds, "library-read" lists and opens.
+async function library<T>(needs: "library" | "library-read", call: (host: Bridge) => Promise<T>): Promise<T> {
+  const host = bridge()
+  try {
+    return await call(host)
+  } catch (error) {
+    if (error instanceof OxError) throw error
+    const message = (error instanceof Error ? error.message : "").replace(/^Error invoking remote method '[^']*': (?:Error: )?/, "") || "Could not use your Library."
+    const undeclared = /didn't ask/.test(message)
+    throw new OxError({
+      code: undeclared ? "permission_undeclared" : "permission_denied",
+      message,
+      ...(undeclared ? { hint: `add "${needs}": "…" to app.json › permissions` } : {}),
+    })
+  }
+}
+
 let tickets = 0
 
 async function run<Result = unknown>(action: string, input: Record<string, unknown> = {}, options: RunOptions = {}): Promise<Result> {
@@ -174,11 +196,19 @@ export const ox = {
       await bridge().reveal(path)
     },
   },
+  // The person's Library. Two permissions (Mixel 0.1.23): "library" adds to it; "library-read"
+  // lists it and opens a sound the person picks. A refusal is an OxError: permission_undeclared
+  // when app.json doesn't ask (the hint names the line to add), permission_denied when the
+  // person said no.
   library: {
-    list: (options: { kind?: "sound" | "midi" | "other" } = {}): Promise<LibraryItem[]> => bridge().libraryList(options.kind),
-    add: (paths: string[]): Promise<LibraryItem[]> => bridge().libraryImport(paths),
-    // The file behind a Library item, which the app may then read (needs "files").
-    file: (id: string): Promise<string> => bridge().libraryFile(id),
+    // The sounds in the Library: names, length, tempo and key, never paths. Needs "library-read".
+    list: (options: { kind?: "sound" | "midi" | "other" } = {}): Promise<LibraryItem[]> => library("library-read", (host) => host.libraryList(options.kind)),
+    // Add files the person chose for this app. Needs "library". A sound the Library already had
+    // from elsewhere comes back as only { imported: "already" }.
+    add: (paths: string[]): Promise<LibraryAdded[]> => library("library", (host) => host.libraryImport(paths)),
+    // The file behind a Library item, which the app may then read (needs "files"). A sound the
+    // app made or added needs nothing more; any other needs "library-read", and the person picks it.
+    file: (id: string): Promise<string> => library("library-read", (host) => host.libraryFile(id)),
     onChange: (callback: () => void): (() => void) => bridge().onLibrary(callback),
   },
   // The app's own files (needs "data"). Errors are OxError: permission_undeclared when app.json doesn't ask for data.
