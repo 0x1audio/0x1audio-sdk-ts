@@ -1,4 +1,4 @@
-# Publishes @0x1audio/sdk to npm with trusted publishing (GAB-40): no npm token is
+# Publishes @ox1audio/sdk to npm with trusted publishing (GAB-40): no npm token is
 # stored anywhere. GitHub proves to npm which repo and workflow is asking, through a
 # short-lived OIDC token, and npm attaches a provenance statement to the package.
 #
@@ -6,7 +6,7 @@
 # package.json to confirm; it must match, and it must not be on npm already.
 #
 # One-time setup, done by the founder (RELEASE.md, "Publishing the SDKs"):
-#   1. npmjs.com › @0x1audio/sdk › Settings › Trusted publishing › GitHub Actions:
+#   1. npmjs.com › @ox1audio/sdk › Settings › Trusted publishing › GitHub Actions:
 #      organization 0x1audio, repository 0x1audio-sdk-ts, workflow sdk-publish.yml,
 #      environment npm. (The package must exist first: the very first version is
 #      published by hand with `npm publish --access public`.)
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: npm
-      url: https://www.npmjs.com/package/@0x1audio/sdk/v/${{ inputs.version }}
+      url: https://www.npmjs.com/package/@ox1audio/sdk/v/${{ inputs.version }}
     permissions:
       contents: read
       id-token: write
@@ -54,7 +54,7 @@ jobs:
         run: |
           have=$(node -p "require('./package.json').version")
           if [ "$have" != "$WANT" ]; then echo "::error::package.json says $have, not $WANT."; exit 1; fi
-          if npm view "@0x1audio/sdk@$have" version > /dev/null 2>&1; then echo "::error::@0x1audio/sdk $have is already on npm."; exit 1; fi
+          if npm view "@ox1audio/sdk@$have" version > /dev/null 2>&1; then echo "::error::@ox1audio/sdk $have is already on npm."; exit 1; fi
 
       - name: Test
         run: |

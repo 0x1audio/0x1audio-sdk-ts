@@ -1,6 +1,6 @@
 // Search your own sounds by words, then find more like the first one:
 //   node examples/search.ts "snare" --avoid clap
-import { Mixel, MixelError } from "@0x1audio/sdk/local"
+import { Mixel, MixelError } from "@ox1audio/sdk/local"
 
 const [want = "snare", ...rest] = process.argv.slice(2)
 const avoid = rest.flatMap((arg, at) => (rest[at - 1] === "--avoid" ? [arg] : []))

@@ -1,6 +1,6 @@
 // Hand yourself a crate of sounds to audition in Mixel: node examples/crate.ts "snare"
 // Nothing is moved, tagged or copied. Needs Settings › Your assistant › It can propose crates.
-import { Mixel, MixelError } from "@0x1audio/sdk/local"
+import { Mixel, MixelError } from "@ox1audio/sdk/local"
 
 const want = process.argv[2] ?? "snare"
 const mixel = new Mixel({ caller: "sdk example" })

@@ -2,7 +2,7 @@
 // log for a few seconds, then close it. Needs Settings › Developer mode.
 //   node examples/open-app.ts path/to/my-app [seconds]
 // To run one action from the terminal instead, without Mixel: mixel run ACTION --file song.wav
-import { Mixel, MixelError } from "@0x1audio/sdk/local"
+import { Mixel, MixelError } from "@ox1audio/sdk/local"
 
 const [dir = ".", seconds = "5"] = process.argv.slice(2)
 const mixel = new Mixel({ caller: "sdk example" })

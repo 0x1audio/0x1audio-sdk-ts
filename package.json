@@ -1,5 +1,5 @@
 {
-  "name": "@0x1audio/sdk",
+  "name": "@ox1audio/sdk",
   "version": "0.3.1",
   "description": "Mixel's TypeScript SDK: an app's page, the Mixel on this computer, and the Mixel cloud.",
   "license": "Apache-2.0",

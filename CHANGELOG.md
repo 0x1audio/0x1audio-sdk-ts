@@ -1,12 +1,12 @@
 # Changelog
 
-Every release of `@0x1audio/sdk`, newest first. Versions follow [semantic versioning](https://semver.org): until 1.0, a release that changes the version's middle number (0.3 → 0.4) may break code written for the one before, and every 0.3.x release keeps working with code written for 0.3.0. The page API (`@0x1audio/sdk/page`) follows the Mixel app SDK it pairs with: an app whose `app.json` says `"sdk": "^0.3"` uses `@0x1audio/sdk` 0.3.x.
+Every release of `@ox1audio/sdk`, newest first. Versions follow [semantic versioning](https://semver.org): until 1.0, a release that changes the version's middle number (0.3 → 0.4) may break code written for the one before, and every 0.3.x release keeps working with code written for 0.3.0. The page API (`@ox1audio/sdk/page`) follows the Mixel app SDK it pairs with: an app whose `app.json` says `"sdk": "^0.3"` uses `@ox1audio/sdk` 0.3.x.
 
 ## 0.3.1 (not published yet)
 
 ### Added
 
-- **`@0x1audio/sdk/local`: the Mixel on this computer, from Node.** `new Mixel()` finds the running Mixel through its data folder (or `MIXEL_DATA_DIR`).
+- **`@ox1audio/sdk/local`: the Mixel on this computer, from Node.** `new Mixel()` finds the running Mixel through its data folder (or `MIXEL_DATA_DIR`).
   - `overview()` says what the Library holds, in counts.
   - `search(words, { avoid, type, key, bpm, length })` searches your own sounds by words, 10 at a time. `offset: found.next` gets the next page from a Mixel that pages.
   - `similar(id)` finds sounds close to one a search returned.
@@ -48,6 +48,6 @@ Every release of `@0x1audio/sdk`, newest first. Versions follow [semantic versio
 
 The first version under the Apache-2.0 licence. It was never published to npm; Mixel's own apps used it from a checkout.
 
-- `@0x1audio/sdk/page`: the typed `ox` object around `@ox.action`. It has `ox.run` with progress, events and Stop (an `OxError` lists what was kept), `ox.files`, `ox.data`, `ox.unavailable()` and typed multiple choices. Its types come from the shared contract, including `ControlHint.origin` and the `gpu` permission.
+- `@ox1audio/sdk/page`: the typed `ox` object around `@ox.action`. It has `ox.run` with progress, events and Stop (an `OxError` lists what was kept), `ox.files`, `ox.data`, `ox.unavailable()` and typed multiple choices. Its types come from the shared contract, including `ControlHint.origin` and the `gpu` permission.
 - `cloudApi(baseUrl, token)`: a client for the cloud's first API.
 - Apache-2.0, a DCO for contributions, a security policy, and a hand-run npm publish with provenance.

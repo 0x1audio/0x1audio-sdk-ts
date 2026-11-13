@@ -28,9 +28,9 @@ try {
   run(app, "npm", ["install", "--no-audit", "--no-fund", "--ignore-scripts", path.join(work, packed.filename)])
   fs.writeFileSync(
     path.join(app, "check.mjs"),
-    `import { cloudApi, MixelError, version } from "@0x1audio/sdk"
-import { Mixel } from "@0x1audio/sdk/local"
-import { ox, OxError, permissionCodes } from "@0x1audio/sdk/page"
+    `import { cloudApi, MixelError, version } from "@ox1audio/sdk"
+import { Mixel } from "@ox1audio/sdk/local"
+import { ox, OxError, permissionCodes } from "@ox1audio/sdk/page"
 if (version !== ${JSON.stringify(pkg.version)}) throw new Error("version is " + version)
 if (typeof cloudApi !== "function" || typeof Mixel !== "function" || typeof ox.run !== "function") throw new Error("an entry point is missing")
 if (!permissionCodes.includes("library-read")) throw new Error("no library-read")

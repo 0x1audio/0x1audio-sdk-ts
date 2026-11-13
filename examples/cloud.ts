@@ -1,7 +1,7 @@
 // The Mixel cloud: is it up, and, signed in, who you are and the reviewed apps.
 //   node examples/cloud.ts                 health only
 //   MIXEL_TOKEN=mxl_… node examples/cloud.ts
-import { cloudApi, MixelError } from "@0x1audio/sdk"
+import { cloudApi, MixelError } from "@ox1audio/sdk"
 
 const api = cloudApi()
 try {

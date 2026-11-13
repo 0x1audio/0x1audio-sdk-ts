@@ -14,7 +14,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { Mixel, MixelUnavailableError } from "@0x1audio/sdk/local"
+import { Mixel, MixelUnavailableError } from "@ox1audio/sdk/local"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const args = process.argv.slice(2)

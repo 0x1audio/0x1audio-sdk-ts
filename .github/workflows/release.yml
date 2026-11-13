@@ -38,4 +38,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           (cd out && sha256sum *.tgz > SHA256SUMS)
-          gh release create "$GITHUB_REF_NAME" out/* --title "@0x1audio/sdk ${GITHUB_REF_NAME#v}" --notes "See [CHANGELOG.md](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_REF_NAME/CHANGELOG.md)." --verify-tag
+          gh release create "$GITHUB_REF_NAME" out/* --title "@ox1audio/sdk ${GITHUB_REF_NAME#v}" --notes "See [CHANGELOG.md](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_REF_NAME/CHANGELOG.md)." --verify-tag

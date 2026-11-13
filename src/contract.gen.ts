@@ -1,6 +1,6 @@
 // Generated from sdk-py/contract by contract/generate.py. Do not edit.
 // The action, error and Library item shapes that sdk-py (_protocol.py), the desktop host
-// (electron/apps/protocol.ts) and the page SDK (@0x1audio/sdk/page) share. Page SDK copy.
+// (electron/apps/protocol.ts) and the page SDK (@ox1audio/sdk/page) share. Page SDK copy.
 
 export const protocolVersion = 1
 export const manifestSchema = "https://0x1audio.com/schema/app/v1.json"

@@ -1,4 +1,4 @@
-// The Mixel on this computer, from Node: `import { Mixel } from "@0x1audio/sdk/local"`.
+// The Mixel on this computer, from Node: `import { Mixel } from "@ox1audio/sdk/local"`.
 //
 //   const mixel = new Mixel({ caller: "my-script" })
 //   await mixel.overview()                          what the Library holds, in counts

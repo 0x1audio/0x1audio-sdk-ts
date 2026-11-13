@@ -1,4 +1,4 @@
-// The page side of an app: `import { ox } from "@0x1audio/sdk/page"`.
+// The page side of an app: `import { ox } from "@ox1audio/sdk/page"`.
 // Mixel injects window.ox1 before the page runs; this module is the typed way in.
 // Every call either returns its value or throws an OxError with a code.
 
@@ -237,10 +237,10 @@ export const ox = {
 // Gone in 0.3. Kept as names so old pages fail with the fix instead of "is not a function".
 /** @deprecated Gone in 0.3. Use `ox.run(action, input, { onProgress, signal })`. */
 export function job(): never {
-  throw new Error('job() is gone: use ox.run("action", input, { onProgress, signal }).\nfix:  import { ox } from "@0x1audio/sdk/page"\ndocs: https://docs.0x1audio.com/page#run')
+  throw new Error('job() is gone: use ox.run("action", input, { onProgress, signal }).\nfix:  import { ox } from "@ox1audio/sdk/page"\ndocs: https://docs.0x1audio.com/page#run')
 }
 
 /** @deprecated Gone in 0.3. Use the typed `ox` object. */
 export function host(): never {
-  throw new Error('host() is gone: use the typed ox object.\nfix:  import { ox } from "@0x1audio/sdk/page"; then ox.run, ox.files.pick, ox.data.read ...\ndocs: https://docs.0x1audio.com/page')
+  throw new Error('host() is gone: use the typed ox object.\nfix:  import { ox } from "@ox1audio/sdk/page"; then ox.run, ox.files.pick, ox.data.read ...\ndocs: https://docs.0x1audio.com/page')
 }

@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping with @0x1audio/sdk, Mixel's TypeScript SDK. A good bug report is as welcome as a pull request.
+Thank you for helping with @ox1audio/sdk, Mixel's TypeScript SDK. A good bug report is as welcome as a pull request.
 
 ## Issues
 
@@ -35,7 +35,7 @@ npm run drift     # openapi.json and src/client against the cloud's spec
 npm run pack:check  # packs the package, installs the .tgz into an empty project and imports it
 ```
 
-With Mixel open, `npm run smoke` runs the examples against the real thing. A change to what `@0x1audio/sdk` exports or does gets a line in [CHANGELOG.md](CHANGELOG.md), under the next version.
+With Mixel open, `npm run smoke` runs the examples against the real thing. A change to what `@ox1audio/sdk` exports or does gets a line in [CHANGELOG.md](CHANGELOG.md), under the next version.
 
 ## Pull requests
 

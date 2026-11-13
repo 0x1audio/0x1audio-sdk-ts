@@ -1,10 +1,10 @@
-# @0x1audio/sdk
+# @ox1audio/sdk
 
 Mixel's TypeScript SDK. It has three parts:
 
-- **`@0x1audio/sdk/local`** reaches the Mixel on your computer from Node: search your own sounds by words, see what your Library holds, hand yourself a crate, and open an app you're building.
-- **`@0x1audio/sdk/page`** is the page of a Mixel app: run the app's actions with progress and Stop, pick files, and keep data.
-- **`@0x1audio/sdk`** is the Mixel cloud: your account, `mixel` sign-in, and the reviewed app registry.
+- **`@ox1audio/sdk/local`** reaches the Mixel on your computer from Node: search your own sounds by words, see what your Library holds, hand yourself a crate, and open an app you're building.
+- **`@ox1audio/sdk/page`** is the page of a Mixel app: run the app's actions with progress and Stop, pick files, and keep data.
+- **`@ox1audio/sdk`** is the Mixel cloud: your account, `mixel` sign-in, and the reviewed app registry.
 
 Every call returns its value or throws a `MixelError` with a `code` and a `fix`.
 
@@ -15,7 +15,7 @@ You need [Mixel](https://0x1audio.com) and Node 20.3 or later.
 **1. Install.**
 
 ```bash
-npm install @0x1audio/sdk
+npm install @ox1audio/sdk
 ```
 
 Until the first release is on npm, install the same package from its GitHub release:
@@ -31,7 +31,7 @@ The imports are the same either way. `npm install github:0x1audio/0x1audio-sdk-t
 **3. Search.** Save this as `search.mjs` and run `node search.mjs`:
 
 ```js
-import { Mixel } from "@0x1audio/sdk/local"
+import { Mixel } from "@ox1audio/sdk/local"
 
 const mixel = new Mixel({ caller: "my script" })
 const found = await mixel.search("dusty snare", { avoid: ["clap"] })
@@ -50,7 +50,7 @@ If Mixel is closed or the switch is off, the call throws a `MixelUnavailableErro
 
 ## The Mixel on your computer
 
-`@0x1audio/sdk/local` runs in Node. It talks to the running Mixel through the same Library socket that Mixel's assistant bridge uses. Nothing goes over the network.
+`@ox1audio/sdk/local` runs in Node. It talks to the running Mixel through the same Library socket that Mixel's assistant bridge uses. Nothing goes over the network.
 
 | Call | What it does | Needs |
 | --- | --- | --- |
@@ -78,7 +78,7 @@ Mixel decides what leaves it: no file paths, no scores, at most 10 sounds a sear
 ## An app's page
 
 ```ts
-import { ox } from "@0x1audio/sdk/page"
+import { ox } from "@ox1audio/sdk/page"
 
 const files = await ox.files.pick({ accept: "audio", multiple: true })
 const made = await ox.run("convert", { files, format: "flac" }, { onProgress: (fraction, label) => show(fraction, label) })
@@ -107,7 +107,7 @@ Mixel injects the bridge before the page runs; outside Mixel, `ox.unavailable()`
 ```
 
 ```ts
-import { ox, OxError } from "@0x1audio/sdk/page"
+import { ox, OxError } from "@ox1audio/sdk/page"
 
 try {
   const sounds = await ox.library.list({ kind: "sound" })
@@ -122,7 +122,7 @@ try {
 ## The Mixel cloud
 
 ```ts
-import { cloudApi } from "@0x1audio/sdk"
+import { cloudApi } from "@ox1audio/sdk"
 
 const api = cloudApi() // MIXEL_API and MIXEL_TOKEN, else https://cloud.0x1audio.com
 const { data } = await api.v1.appCatalog()
@@ -192,7 +192,7 @@ To give a coding agent your Library, use `mixel mcp` from the [Python SDK](https
 
 ## Versions
 
-This package follows [semantic versioning](https://semver.org); every release is in [CHANGELOG.md](CHANGELOG.md). Until 1.0, every 0.3.x release keeps working with code written for 0.3.0. The page API follows the app SDK: an app with `"sdk": "^0.3"` uses `@0x1audio/sdk` 0.3.x.
+This package follows [semantic versioning](https://semver.org); every release is in [CHANGELOG.md](CHANGELOG.md). Until 1.0, every 0.3.x release keeps working with code written for 0.3.0. The page API follows the app SDK: an app with `"sdk": "^0.3"` uses `@ox1audio/sdk` 0.3.x.
 
 ## Work on the SDK
 

@@ -13,7 +13,7 @@ Tell us what you found, the steps to reproduce it, what an attacker could do wit
 
 ## What's in scope
 
-- **The page side** (`@0x1audio/sdk/page`): anything that lets a page call the desktop in a way its app didn't declare, or confuses one app's page with another's.
+- **The page side** (`@ox1audio/sdk/page`): anything that lets a page call the desktop in a way its app didn't declare, or confuses one app's page with another's.
 - **The API client:** how it sends tokens and where it sends them.
 
 The desktop sandbox, file access, registry review, and the API and auth live in Mixel itself, the app and the cloud, and [Mixel's security policy](https://0x1audio.com/security) covers them. If you're not sure where something belongs, report it here and we'll pass it on.
