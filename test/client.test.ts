@@ -92,7 +92,7 @@ test("an error status throws a MixelApiError with the cloud's code, and every pr
   const server = await serve((request, response) => {
     if (request.url === "/api/v1/me") return json(response, 401, { error: { code: "unauthenticated", message: "Sign in to continue." } })
     json(response, 400, {
-      error: { code: "manifest_invalid", message: "app.json has 2 problems.", fix: "mixel check", doc_url: "https://developers.0x1audio.com/errors#manifest_invalid" },
+      error: { code: "manifest_invalid", message: "app.json has 2 problems.", fix: "mixel check", doc_url: "https://docs.0x1audio.com/errors#manifest_invalid" },
       errors: [
         { code: "manifest_summary", message: "summary is missing." },
         { code: "sdk_missing", message: "app.json has no sdk range.", param: "sdk" },
@@ -115,7 +115,7 @@ test("an error status throws a MixelApiError with the cloud's code, and every pr
     assert.ok(refused instanceof MixelApiError)
     assert.equal(refused.code, "manifest_invalid")
     assert.equal(refused.fix, "mixel check")
-    assert.equal(refused.docUrl, "https://developers.0x1audio.com/errors#manifest_invalid")
+    assert.equal(refused.docUrl, "https://docs.0x1audio.com/errors#manifest_invalid")
     assert.deepEqual(refused.errors.map((problem) => problem.code), ["manifest_summary", "sdk_missing"])
     // A POST is never sent twice.
     assert.equal(server.seen.filter((seen) => seen.method === "POST").length, 1)
